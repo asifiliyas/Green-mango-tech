@@ -1,43 +1,35 @@
 # 🥭 Green Mango Marketplace MVP
 
-A production-grade, end-to-end guest posting marketplace workflow. Inspired by platforms like **Adsy** and **Vefogix**, this MVP focuses on a robust architectural foundation with a clear multi-role permission system and secure transaction flow.
+A complete, end-to-end guest posting marketplace workflow. This project is built as a robust proof-of-concept for a multi-role ecosystem, focusing on architectural integrity, secure transactions, and seamless user transitions.
 
 ---
 
-## 🏗️ Core Requirements Fulfilled
-This project implements the full marketplace lifecycle as requested:
-- **Comprehensive Role System**: Deep integration of **Buyer**, **Seller**, and **Admin** roles with secure route guarding.
-- **Listing Lifecycle**: Sellers can create website listings which are queued for Admin verification before appearing in the marketplace.
-- **End-to-End Order Flow**: 
-  - **PENDING**: New orders created after payment verification.
-  - **APPROVED/REJECTED**: Admin oversight for order legitimacy.
-  - **COMPLETED**: Seller-side fulfillment tracking.
-- **REST & JWT Security**: Built on **Next.js 16 (App Router)** with **NextAuth.js** using a **JWT strategy** for efficient identity management.
-- **PostgreSQL Persistence**: Leveraging **Neon PostgreSQL** with **Prisma ORM** for a clean, relational database design.
+## ✅ Project Scope & Requirements
+This MVP fulfills the full technical criteria requested for a production-ready marketplace workflow:
+- **Multi-Role User System**: Dedicated interfaces and permissions for **Buyers**, **Sellers**, and **Admins**.
+- **Listing Lifecycle**: A complete flow allowing Sellers to create listings, which are then vetted and approved by Admins.
+- **Transactional Integrity**: Clear order status tracking from `PENDING` through `APPROVED`, `REJECTED`, and finally `COMPLETED`.
+- **Modern Tech Stack**: Built with **Next.js 15 (App Router)**, **PostgreSQL (Neon)** via **Prisma ORM**, and **Tailwind CSS**.
+- **Secure Identity**: Implemented with **NextAuth.js** using a **JWT strategy** for efficient, edge-level session management.
 
 ---
 
-## ⭐ Advanced Implementations (The Green Mango Delta)
-In addition to the core flow, we have included several professional-grade features to demonstrate production readiness:
-
-### 1. Context-Aware Identity Engine
-Utilizes **NextAuth.js** to capture user intent (Buyer vs Seller) during the OAuth handshake, automatically synchronizing roles to the database upon first login.
-
-### 2. Cryptographic Payment Verification (Razorpay)
-Integrated a secure **Razorpay** workflow. Orders are only generated inside an atomic **`prisma.$transaction`** after a server-side **SHA-256 HMAC** signature verification using the `crypto` library.
-
-### 3. Edge-Level RBAC Middleware
-Enforces role-based permissions at the network edge, ensuring session stability and preventing unauthorized access to cross-portal dashboards.
-
-### 4. High-End UI UX
-- **Framer Motion**: Smooth micro-animations for dashboard transitions.
-- **Zero-Scroll Auth**: Optimized 100vh layouts for a "native-app" feel.
-- **Responsive Design**: Clean, minimalistic interface accessible across all device sizes.
+## 🚀 Key Additional Features
+To ensure the platform is ready for real-world scenarios, we have included several key integrations beyond the initial scope:
+- **Verified Google OAuth**: A context-aware social login that captures user intent (Buyer vs Seller) during sign-up for a zero-friction experience.
+- **Secure Payment Entry**: Fully integrated **Razorpay** workflow with server-side **SHA-256 HMAC** signature verification to ensure financial security.
+- **Edge RBAC Middleware**: Global route protection that enforces role-based access before pages are served, preventing unauthorized dashboard access.
+- **Fluid User Interface**: Leveraged **Framer Motion** for polished interactions and micro-animations, ensuring a premium feel throughout the platform.
 
 ---
 
-## 🚀 Deployment
-Live on Vercel with automated Prisma generation:
-[https://green-mango.vercel.app](https://green-mango.vercel.app)
+## 🧪 Quick Start & Review
+1.  **Deployment**: Live on Vercel at [https://green-mango.vercel.app](https://green-mango.vercel.app).
+2.  **Test Accounts**: Quick-login buttons are available on the Sign In page for immediate testing of all three roles.
+3.  **Core Check**:
+    - **Seller**: Post a new site listing.
+    - **Admin**: Approve the site.
+    - **Buyer**: Purchase the approved site in the marketplace.
+    - **Fulfillment**: Seller marks the order as completed.
 
-> **Architectural Note**: Folder structure follows a modular, feature-based pattern ( `/src/app/api`, `/src/components/dashboard`, `/src/contexts`) for clear maintainability and separation of concerns.
+> **Architectural Goal**: This project demonstrates a clean directory structure and a scalable REST API pattern, prioritizing functionality and the end-to-end user loop.
