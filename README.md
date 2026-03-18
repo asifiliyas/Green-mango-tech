@@ -1,42 +1,43 @@
-# 🥭 Green Mango: Premium Marketplace Senior MVP
+# 🥭 Green Mango Marketplace MVP
 
-A high-performance guest posting ecosystem built for reliability, security, and enterprise-grade scalability. This isn't just a CRUD app—it's a production-ready financial and identity engine.
-
----
-
-## 🔥 Why This Implementation is Superior
-
-Most guest posting demos are single-role and insecure. **Green Mango** goes "out of the box" with:
-
-### 🛡️ 1. Context-Aware Identity (Identity-at-the-Edge)
-Unlike standard OAuth flows, we capture **user intent** before the handshake. 
-- **Dynamic Persona Sync**: Users clicking "Start Selling" have their specific role automatically synchronized to the database upon Google Login. No extra profile forms required.
-- **RBAC Middleware**: Role-Based Access Control is enforced at the server edge using **JWT session tokens**, ensuring zero unauthorized portal-hopping.
-
-### 💳 2. Cryptographic Payment Handshake
-We don't trust client-side success events. 
-- **SH-256 Signature Verification**: Every Razorpay transaction is verified server-side using the `crypto` library.
-- **Atomic Transactions**: Orders are created inside a `prisma.$transaction`. An order only exists in our DB if the cryptographic handshake with Razorpay is 100% verified.
-
-### ⚡ 3. Enterprise Performance
-- **Serverless PostgreSQL (Neon)**: Low-latency database with connection pooling for high-concurrency.
-- **Micro-Animations**: Uses `framer-motion` for professional UI responsiveness, ensuring a premium "Tier 1" feels.
-- **Zero-Scroll Auth**: Optimized 100vh layouts for native-level UX.
+A production-grade, end-to-end guest posting marketplace workflow. Inspired by platforms like **Adsy** and **Vefogix**, this MVP focuses on a robust architectural foundation with a clear multi-role permission system and secure transaction flow.
 
 ---
 
-## 🛠️ Technical Stack
-- **Next.js 16 (App Router)** & **NextAuth.js**
-- **Prisma ORM** & **Neon PostgreSQL**
-- **Razorpay Node SDK**
-- **Tailwind CSS** & **Framer Motion**
+## 🏗️ Core Requirements Fulfilled
+This project implements the full marketplace lifecycle as requested:
+- **Comprehensive Role System**: Deep integration of **Buyer**, **Seller**, and **Admin** roles with secure route guarding.
+- **Listing Lifecycle**: Sellers can create website listings which are queued for Admin verification before appearing in the marketplace.
+- **End-to-End Order Flow**: 
+  - **PENDING**: New orders created after payment verification.
+  - **APPROVED/REJECTED**: Admin oversight for order legitimacy.
+  - **COMPLETED**: Seller-side fulfillment tracking.
+- **REST & JWT Security**: Built on **Next.js 16 (App Router)** with **NextAuth.js** using a **JWT strategy** for efficient identity management.
+- **PostgreSQL Persistence**: Leveraging **Neon PostgreSQL** with **Prisma ORM** for a clean, relational database design.
 
 ---
 
-## 🧪 Quick Setup
-1. `npm install`
-2. Configure `.env` with Google & Razorpay keys.
-3. Visit `/api/seed` to populate test accounts.
-4. **Deploy**: Ready for Vercel with automated Prisma generation.
+## ⭐ Advanced Implementations (The Green Mango Delta)
+In addition to the core flow, we have included several professional-grade features to demonstrate production readiness:
 
-> **Production Note**: The platform uses industry-standard JWT strategies and encrypted cookie sessions for maximum stability.
+### 1. Context-Aware Identity Engine
+Utilizes **NextAuth.js** to capture user intent (Buyer vs Seller) during the OAuth handshake, automatically synchronizing roles to the database upon first login.
+
+### 2. Cryptographic Payment Verification (Razorpay)
+Integrated a secure **Razorpay** workflow. Orders are only generated inside an atomic **`prisma.$transaction`** after a server-side **SHA-256 HMAC** signature verification using the `crypto` library.
+
+### 3. Edge-Level RBAC Middleware
+Enforces role-based permissions at the network edge, ensuring session stability and preventing unauthorized access to cross-portal dashboards.
+
+### 4. High-End UI UX
+- **Framer Motion**: Smooth micro-animations for dashboard transitions.
+- **Zero-Scroll Auth**: Optimized 100vh layouts for a "native-app" feel.
+- **Responsive Design**: Clean, minimalistic interface accessible across all device sizes.
+
+---
+
+## 🚀 Deployment
+Live on Vercel with automated Prisma generation:
+[https://green-mango.vercel.app](https://green-mango.vercel.app)
+
+> **Architectural Note**: Folder structure follows a modular, feature-based pattern ( `/src/app/api`, `/src/components/dashboard`, `/src/contexts`) for clear maintainability and separation of concerns.
