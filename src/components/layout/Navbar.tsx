@@ -57,7 +57,7 @@ export default function Navbar() {
                   href="/login"
                   className="bg-green-600 hover:bg-green-700 text-white font-medium text-sm px-6 py-2.5 rounded-lg shadow-sm transition-colors"
                 >
-                  Access Platform
+                  Sign In
                 </Link>
               </div>
             )}

@@ -31,20 +31,22 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 select-none">
             <Link
-              href="/marketplace"
-              className="w-full sm:w-auto px-8 py-5 bg-gray-900 hover:bg-black text-white rounded-full font-bold text-lg transition-all hover:-translate-y-1 shadow-2xl flex items-center justify-center space-x-3 group"
+              href="/register"
+              className="w-full sm:w-auto px-10 py-5 bg-gray-900 hover:bg-black text-white rounded-full font-bold text-lg transition-transform hover:-translate-y-1 shadow-2xl flex items-center justify-center space-x-3"
             >
-              <span>Browse Marketplace</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <span>Get Started</span>
+              <ArrowRight className="w-5 h-5" />
             </Link>
             <Link
-              href="/register"
-              className="w-full sm:w-auto px-8 py-5 bg-white border-2 border-gray-900 text-gray-900 rounded-full font-bold text-lg transition-all hover:-translate-y-1 shadow-xl flex items-center justify-center space-x-3 hover:bg-gray-50"
+              href="/login"
+              className="w-full sm:w-auto px-10 py-5 bg-white border-2 border-gray-900 text-gray-900 rounded-full font-bold text-lg transition-transform hover:-translate-y-1 shadow-xl flex items-center justify-center"
             >
-              <span>Start Selling</span>
+              Sign In
             </Link>
           </div>
-          <p className="mt-8 text-sm text-gray-600 font-bold uppercase tracking-widest opacity-60">Ready for full-stack review & production verification</p>
+          <p className="mt-8 text-sm text-gray-500 font-medium">Connect with premium publishers and scale your SEO authority.</p>
+
+
 
         </motion.div>
 

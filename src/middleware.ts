@@ -3,36 +3,30 @@ import { NextResponse } from "next/server"
 
 export default withAuth(
   function middleware(req) {
-    const token = req.nextauth.token
-    const path = req.nextUrl.pathname
+    const token = req.nextauth.token;
+    const path = req.nextUrl.pathname;
 
-    // Admin-only routes
-    if (path.startsWith("/dashboard") && (token as any)?.role === "ADMIN") {
-      // Admins are welcome
-      return NextResponse.next()
+    // Protection for Dashboard
+    if (path.startsWith('/dashboard') && !token) {
+      return NextResponse.redirect(new URL('/login', req.url));
     }
 
-    // Role-based access for Seller Dashboard sections
-    if (path.startsWith("/dashboard") && (token as any)?.role === "SELLER") {
-       // Sellers are welcome
-       return NextResponse.next()
+    // Protection for Marketplace
+    if (path.startsWith('/marketplace') && !token) {
+      return NextResponse.redirect(new URL('/login', req.url));
     }
 
-    // Role-based access for Buyer sections
-    if (path === "/marketplace" && (token as any)?.role !== "BUYER") {
-       // Allow admins to view but maybe not sellers? 
-       // For this MVP, let's keep it open but favor Buyers.
-    }
-
-    return NextResponse.next()
+    return NextResponse.next();
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: () => true, // We check inside the middleware function for better control
     },
   }
-)
+);
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/marketplace/:path*"],
-}
+  matcher: ['/dashboard/:path*', '/marketplace/:path*', '/marketplace'],
+};
+
+
