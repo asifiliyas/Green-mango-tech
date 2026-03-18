@@ -3,8 +3,11 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, BarChart2, ShieldCheck, Globe } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
+  const { user } = useAuth();
+
   return (
     <div className="min-h-[80vh] flex flex-col justify-center bg-white relative overflow-hidden">
       {/* Background decoration */}
@@ -30,21 +33,34 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 select-none">
-            <Link
-              href="/register"
-              className="w-full sm:w-auto px-10 py-5 bg-gray-900 hover:bg-black text-white rounded-full font-bold text-lg transition-transform hover:-translate-y-1 shadow-2xl flex items-center justify-center space-x-3"
-            >
-              <span>Get Started</span>
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-            <Link
-              href="/login"
-              className="w-full sm:w-auto px-10 py-5 bg-white border-2 border-gray-900 text-gray-900 rounded-full font-bold text-lg transition-transform hover:-translate-y-1 shadow-xl flex items-center justify-center"
-            >
-              Sign In
-            </Link>
+            {user ? (
+              <Link
+                href="/dashboard"
+                className="w-full sm:w-auto px-10 py-5 bg-green-600 hover:bg-green-700 text-white rounded-full font-bold text-lg transition-transform hover:-translate-y-1 shadow-2xl flex items-center justify-center space-x-3"
+              >
+                <span>Go to Dashboard</span>
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/register"
+                  className="w-full sm:w-auto px-10 py-5 bg-gray-900 hover:bg-black text-white rounded-full font-bold text-lg transition-transform hover:-translate-y-1 shadow-2xl flex items-center justify-center space-x-3"
+                >
+                  <span>Get Started</span>
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+                <Link
+                  href="/login"
+                  className="w-full sm:w-auto px-10 py-5 bg-white border-2 border-gray-900 text-gray-900 rounded-full font-bold text-lg transition-transform hover:-translate-y-1 shadow-xl flex items-center justify-center"
+                >
+                  Sign In
+                </Link>
+              </>
+            )}
           </div>
           <p className="mt-8 text-sm text-gray-500 font-medium">Connect with premium publishers and scale your SEO authority.</p>
+
 
 
 
