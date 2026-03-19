@@ -1,65 +1,59 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../auth/[...nextauth]/route";
 import crypto from 'crypto';
+import { prisma } from '../../../../lib/prisma';
+import { getSession } from '../../../../lib/auth';
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== 'BUYER') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    const session = await getSession();
+    if (!session || session.role !== 'BUYER') {
+      return NextResponse.json({ error: 'Unauthorized.' }, { status: 403 });
     }
 
     const { 
       razorpay_order_id, 
       razorpay_payment_id, 
-      razorpay_signature,
+      razorpay_signature, 
       websiteId,
       targetUrl,
-      content
+      content 
     } = await req.json();
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !websiteId || !targetUrl) {
-      return NextResponse.json({ error: 'Missing required payment verification fields' }, { status: 400 });
-    }
-
-    const secret = process.env.RAZORPAY_KEY_SECRET as string;
-
+    // 1. Verify Payment Signature securely with crypto
+    const text = razorpay_order_id + "|" + razorpay_payment_id;
     const generated_signature = crypto
-      .createHmac('sha256', secret)
-      .update(razorpay_order_id + "|" + razorpay_payment_id)
-      .digest('hex');
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
+      .update(text)
+      .digest("hex");
 
     if (generated_signature !== razorpay_signature) {
-      return NextResponse.json({ error: 'Invalid payment signature' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid payment signature. Potential tampering detected.' }, { status: 400 });
     }
 
+    // 2. Fetch the website to confirm price
     const website = await prisma.website.findUnique({
       where: { id: websiteId }
     });
 
     if (!website) {
-       return NextResponse.json({ error: 'Website not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Website not found' }, { status: 404 });
     }
 
-    // Wrap the order creation in a Prisma Transaction as advised by Gemini to ensure atomicity
-    const order = await prisma.$transaction(async (tx: any) => {
-      return tx.order.create({
-        data: {
-          websiteId,
-          buyerId: (session.user as any).id,
-          targetUrl,
-          content,
-          price: website.price,
-          status: 'PENDING'
-        }
-      });
+    // 3. Create the Database Order record now that payment is confirmed
+    const order = await prisma.order.create({
+      data: {
+        websiteId,
+        buyerId: session.userId,
+        targetUrl,
+        content,
+        price: website.price,
+        status: 'PENDING' // Now it appears in the Seller/Admin dashboard for fulfillment
+      }
     });
 
-    return NextResponse.json({ order, message: "Payment verified successfully" }, { status: 201 });
+    return NextResponse.json({ success: true, order }, { status: 201 });
   } catch (error) {
-    console.error('Razorpay Verify Order error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Payment verification failed:', error);
+    return NextResponse.json({ error: 'Internal Server Error during order finalization' }, { status: 500 });
   }
 }

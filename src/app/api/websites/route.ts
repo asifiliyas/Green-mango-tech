@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { getSession } from '@/lib/auth';
+import { prisma } from '../../../lib/prisma';
+import { getSession } from '../../../lib/auth';
 
 export async function GET(req: Request) {
   try {
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
         traffic: parseInt(traffic) || 0,
         price: parseFloat(price),
         sellerId: session.userId,
-        status: 'PENDING' // Requires admin approval
+        status: 'PENDING'
       }
     });
 

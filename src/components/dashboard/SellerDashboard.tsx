@@ -147,9 +147,11 @@ export default function SellerDashboard() {
           <input type="number" placeholder="Monthly Traffic" value={newSite.traffic} onChange={e => setNewSite({...newSite, traffic: e.target.value})} className="border border-gray-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none" />
           <input required type="number" placeholder="Price ($)" value={newSite.price} onChange={e => setNewSite({...newSite, price: e.target.value})} className="border border-gray-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none" />
           
-          <button type="submit" className="md:col-span-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl py-3 flex justify-center items-center gap-2 transition-colors">
-            <PlusCircle className="w-5 h-5" /> Submit Website for Approval
-          </button>
+          <div className="md:col-span-2 flex justify-center mt-2">
+            <button type="submit" className="w-fit px-12 bg-green-600 hover:bg-green-700 text-white font-black rounded-xl py-3.5 flex justify-center items-center gap-2 transition-all shadow-xl shadow-green-200 active:scale-95">
+              <PlusCircle className="w-5 h-5" /> Submit Website
+            </button>
+          </div>
         </form>
       </div>
 

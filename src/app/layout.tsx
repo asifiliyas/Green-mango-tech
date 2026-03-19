@@ -2,10 +2,9 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { NextAuthProvider } from '@/components/auth/NextAuthProvider';
 import Navbar from '@/components/layout/Navbar';
 import Script from 'next/script';
-
-import NextAuthProvider from '@/components/providers/NextAuthProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -30,7 +29,7 @@ export default function RootLayout({
                 {children}
               </main>
               <footer className="py-8 border-t border-gray-200 text-center text-gray-400 text-sm bg-white">
-                <p>&copy; {new Date().getFullYear()} MangoSpace. Built with Next.js & PostgreSQL.</p>
+                <p>&copy; {new Date().getFullYear()} MangoSpace. Built with Next.js &amp; PostgreSQL.</p>
               </footer>
             </div>
           </AuthProvider>

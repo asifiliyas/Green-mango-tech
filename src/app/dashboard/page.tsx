@@ -5,17 +5,53 @@ import AdminDashboard from '@/components/dashboard/AdminDashboard';
 import SellerDashboard from '@/components/dashboard/SellerDashboard';
 import BuyerDashboard from '@/components/dashboard/BuyerDashboard';
 import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
+  const { update } = useSession();
+  const [syncing, setSyncing] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    const finalizeRole = async () => {
+      const pendingRole = localStorage.getItem('pending_role');
+      if (pendingRole && user && user.role === 'BUYER') { // Default in DB is BUYER
+         setSyncing(true);
+         try {
+           const res = await fetch('/api/auth/update-role', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ role: pendingRole })
+           });
+           if (res.ok) {
+             localStorage.removeItem('pending_role');
+             // Update the NextAuth session so the role change is reflected
+             await update({ role: pendingRole });
+             // Force a refresh to show correct dashboard
+             window.location.reload();
+           }
+         } catch (err) {
+           console.error('Role sync failed:', err);
+         } finally {
+            setSyncing(false);
+         }
+      }
+    };
+    
+    if (!loading && user) {
+       finalizeRole();
+    }
+  }, [user, loading, update]);
+
+  if (loading || syncing) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-green-500" />
       </div>
     );
   }
+
 
   if (!user) {
     return null; // Handled by AuthContext redirect

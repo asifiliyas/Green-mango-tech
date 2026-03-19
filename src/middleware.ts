@@ -1,32 +1,14 @@
-import { withAuth } from "next-auth/middleware"
-import { NextResponse } from "next/server"
+// No middleware needed.
+// Auth redirects are handled by AuthContext on the client side.
+// API route protection is handled by getSession() in each API route.
 
-export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token;
-    const path = req.nextUrl.pathname;
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-    // Protection for Dashboard
-    if (path.startsWith('/dashboard') && !token) {
-      return NextResponse.redirect(new URL('/login', req.url));
-    }
-
-    // Protection for Marketplace
-    if (path.startsWith('/marketplace') && !token) {
-      return NextResponse.redirect(new URL('/login', req.url));
-    }
-
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: () => true, // We check inside the middleware function for better control
-    },
-  }
-);
+export function middleware(request: NextRequest) {
+  return NextResponse.next();
+}
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/marketplace/:path*', '/marketplace'],
+  matcher: [],
 };
-
-

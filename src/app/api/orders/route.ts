@@ -1,17 +1,18 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { getSession } from '@/lib/auth';
+import { prisma } from '../../../lib/prisma';
+import { getSession } from '../../../lib/auth';
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { userId, role } = session;
     let orders;
 
-    if (session.role === 'ADMIN') {
+    if (role === 'ADMIN') {
       orders = await prisma.order.findMany({
         include: {
           buyer: { select: { name: true, email: true } },
@@ -19,10 +20,10 @@ export async function GET(req: Request) {
         },
         orderBy: { createdAt: 'desc' }
       });
-    } else if (session.role === 'SELLER') {
+    } else if (role === 'SELLER') {
       orders = await prisma.order.findMany({
         where: {
-          website: { sellerId: session.userId }
+          website: { sellerId: userId }
         },
         include: {
           buyer: { select: { name: true, email: true } },
@@ -30,9 +31,9 @@ export async function GET(req: Request) {
         },
         orderBy: { createdAt: 'desc' }
       });
-    } else if (session.role === 'BUYER') {
+    } else {
       orders = await prisma.order.findMany({
-        where: { buyerId: session.userId },
+        where: { buyerId: userId },
         include: {
           website: { select: { url: true } }
         },

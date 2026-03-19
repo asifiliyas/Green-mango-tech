@@ -1,113 +1,81 @@
 'use client';
 
+import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, BarChart2, ShieldCheck, Globe } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { Store, ShoppingBag, ArrowRight, ShieldCheck, Globe, Zap, Loader2, BarChart3 } from 'lucide-react';
 
-export default function Home() {
-  const { user } = useAuth();
+export default function HomePage() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="w-10 h-10 animate-spin text-green-500" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-[80vh] flex flex-col justify-center bg-white relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute top-0 left-1/2 w-full -translate-x-1/2 h-[500px] bg-gradient-to-b from-green-50 to-white -z-10 blur-3xl" />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold tracking-wide uppercase mb-8 inline-block">
-            The Premium Guest Posting Network
-          </span>
-          <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 tracking-tight mb-8">
-            Elevate Your SEO with <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-500">
-              High-Quality Backlinks
-            </span>
+    <div className="relative overflow-hidden bg-white">
+      {/* Hero */}
+      <section className="relative pt-24 pb-32 lg:pt-32 lg:pb-40 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-green-50 text-green-700 text-sm font-bold mb-6 border border-green-100 uppercase tracking-widest">
+            <Zap className="w-4 h-4 fill-green-500" />
+            <span>Guest Posting Marketplace</span>
+          </div>
+          <h1 className="text-5xl lg:text-7xl font-black text-gray-900 tracking-tight leading-none mb-6">
+            Everything you need<br/> 
+            <span className="text-green-600">for Guest Posting</span>
           </h1>
-          <p className="max-w-2xl mx-auto text-xl text-gray-500 mb-10">
-            Connect with premium publishers, build authority, and climb the search rankings. The marketplace for real traffic and genuine outreach.
+          <p className="max-w-2xl mx-auto text-xl text-gray-500 mb-12 font-medium leading-relaxed">
+            Connect Buyers with premium Publishers. Browse verified websites, place secure orders, and grow your online authority.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 select-none">
-            {user ? (
-              <Link
-                href="/dashboard"
-                className="w-full sm:w-auto px-10 py-5 bg-green-600 hover:bg-green-700 text-white rounded-full font-bold text-lg transition-transform hover:-translate-y-1 shadow-2xl flex items-center justify-center space-x-3"
-              >
-                <span>Go to Dashboard</span>
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/register"
-                  className="w-full sm:w-auto px-10 py-5 bg-gray-900 hover:bg-black text-white rounded-full font-bold text-lg transition-transform hover:-translate-y-1 shadow-2xl flex items-center justify-center space-x-3"
-                >
-                  <span>Get Started</span>
-                  <ArrowRight className="w-5 h-5" />
-                </Link>
-                <Link
-                  href="/login"
-                  className="w-full sm:w-auto px-10 py-5 bg-white border-2 border-gray-900 text-gray-900 rounded-full font-bold text-lg transition-transform hover:-translate-y-1 shadow-xl flex items-center justify-center"
-                >
-                  Sign In
-                </Link>
-              </>
-            )}
-          </div>
-          <p className="mt-8 text-sm text-gray-500 font-medium">Connect with premium publishers and scale your SEO authority.</p>
-
-
-
-
+          {user ? (
+            <Link href="/dashboard" className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white rounded-2xl font-bold text-lg hover:bg-gray-800 transition-all shadow-xl shadow-gray-200">
+              Go to Dashboard <ArrowRight className="w-5 h-5" />
+            </Link>
+          ) : (
+            <Link href="/auth" className="inline-flex items-center gap-2 px-10 py-5 bg-green-600 text-white rounded-2xl font-black text-xl hover:bg-green-700 transition-all shadow-2xl shadow-green-100">
+              Get Started <ArrowRight className="w-6 h-6" />
+            </Link>
+          )}
         </motion.div>
+      </section>
 
-        {/* Features grid */}
-        <div className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="p-8 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
-          >
-            <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center mb-6 mx-auto">
-              <Globe className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Vast Publisher Network</h3>
-            <p className="text-gray-500">Access thousands of verified websites across hundreds of niches. Real sites with real traffic.</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="p-8 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
-          >
-            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-6 mx-auto">
-              <BarChart2 className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Transparent Metrics</h3>
-            <p className="text-gray-500">Filter by DA, DR, and monthly traffic. Make data-driven decisions for your SEO campaigns.</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="p-8 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
-          >
-            <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mb-6 mx-auto">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Secure Workflow</h3>
-            <p className="text-gray-500">End-to-end management from order to publishing. Built-in escrow and strict quality QA.</p>
-          </motion.div>
+      {/* Workflow */}
+      <section className="py-24 bg-gray-50 border-y border-gray-100 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto text-center mb-16">
+          <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-3">How It Works</h2>
+          <p className="text-gray-500 font-medium">A transparent, end-to-end marketplace workflow</p>
         </div>
-      </div>
+        
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="p-8 bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center gap-4">
+            <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center">
+              <Globe className="w-7 h-7" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Sellers List Sites</h3>
+            <p className="text-sm text-gray-500 font-medium">Publishers add websites with DA, DR, and traffic metrics. Status starts as Pending.</p>
+          </div>
+          <div className="p-8 bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center gap-4">
+            <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center">
+              <ShieldCheck className="w-7 h-7" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Admin Reviews</h3>
+            <p className="text-sm text-gray-500 font-medium">Admin approves or rejects listings and orders. Quality control for both sides.</p>
+          </div>
+          <div className="p-8 bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center gap-4">
+            <div className="w-14 h-14 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center">
+              <BarChart3 className="w-7 h-7" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Buyers Order</h3>
+            <p className="text-sm text-gray-500 font-medium">Buyers browse approved sites, place orders, and track status from Pending to Completed.</p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { signToken, setCookieSession } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
@@ -26,21 +25,18 @@ export async function POST(req: Request) {
         name,
         email,
         password: hashedPassword,
-        role,
+        role: role as any,
       },
     });
 
-    const token = signToken({ userId: user.id, role: user.role });
-    await setCookieSession(token);
-
     return NextResponse.json({
+      success: true,
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
         role: user.role,
-      },
-      token
+      }
     }, { status: 201 });
   } catch (error) {
     console.error('Registration error:', error);
