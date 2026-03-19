@@ -139,8 +139,18 @@ export default function AdminDashboard() {
                     </div>
                   )}
                   {order.status === 'APPROVED' && (
-                    <div className="mt-3">
-                      <button onClick={() => handleUpdateOrder(order.id, 'COMPLETED')} className="w-full py-1.5 bg-blue-50 text-blue-600 text-sm hover:bg-blue-100 rounded font-medium">Mark Completed</button>
+                    <div className="mt-3 space-y-2">
+                       {order.liveLink && (
+                        <a 
+                          href={order.liveLink} target="_blank" rel="noreferrer"
+                          className="flex items-center gap-2 text-[11px] font-bold text-blue-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-100 animate-pulse hover:animate-none"
+                        >
+                          <LinkIcon className="w-3 h-3" /> Review Guest Post: {order.liveLink}
+                        </a>
+                      )}
+                      <button onClick={() => handleUpdateOrder(order.id, 'COMPLETED')} className="w-full py-2 bg-gray-900 text-white text-xs font-black hover:bg-black rounded-lg shadow-lg shadow-gray-200 transition-all active:scale-95 disabled:opacity-50" disabled={!order.liveLink}>
+                        Final Review & Complete Order
+                      </button>
                     </div>
                   )}
                 </div>

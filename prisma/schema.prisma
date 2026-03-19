@@ -110,6 +110,7 @@ model Order {
   website     Website     @relation("WebsiteOrders", fields: [websiteId], references: [id])
   targetUrl   String      // URL the buyer wants to promote
   content     String?     // Optional content/article provided by buyer
+  liveLink    String?     // The fulfilled Guest Post URL from seller
   price       Float
   status      OrderStatus @default(PENDING)
   createdAt   DateTime    @default(now())

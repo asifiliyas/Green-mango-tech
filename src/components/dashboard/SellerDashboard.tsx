@@ -48,15 +48,15 @@ export default function SellerDashboard() {
     }
   };
 
-  const handleOrderStatus = async (orderId: string, status: string) => {
+  const handleOrderStatus = async (orderId: string, status: string, liveLink?: string) => {
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status, liveLink })
       });
       if (res.ok) {
-        setOrders(orders.map(o => o.id === orderId ? { ...o, status } : o));
+        setOrders(orders.map(o => o.id === orderId ? { ...o, status, liveLink: liveLink || o.liveLink } : o));
       }
     } catch (err) {
       console.error(err);
@@ -123,10 +123,33 @@ export default function SellerDashboard() {
                 )}
                 
                 {order.status === 'APPROVED' && (
-                  <div className="mt-4 pt-4 border-t border-gray-50">
-                    <button onClick={() => handleOrderStatus(order.id, 'COMPLETED')} className="w-full bg-blue-50 text-blue-600 hover:bg-blue-100 py-2 rounded-lg text-sm font-semibold transition-colors flex justify-center items-center gap-2">
-                      <CheckCircle className="w-4 h-4" /> Mark as Completed
-                    </button>
+                  <div className="mt-4 pt-4 border-t border-gray-50 space-y-3">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Submit fulfilled guest post link</label>
+                      <div className="flex gap-2">
+                        <input 
+                          id={`link-${order.id}`}
+                          type="url" 
+                          placeholder="https://test-site.com/guest-post-live" 
+                          className="flex-1 border border-gray-100 bg-gray-50 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-500 focus:outline-none"
+                        />
+                        <button 
+                          onClick={() => {
+                            const link = (document.getElementById(`link-${order.id}`) as HTMLInputElement)?.value;
+                            if (!link) return alert('Please enter the live link');
+                            handleOrderStatus(order.id, 'APPROVED', link);
+                          }}
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg text-xs font-black shadow-lg shadow-green-100 hover:bg-green-700 transition-colors"
+                        >
+                          Submit Link
+                        </button>
+                      </div>
+                    </div>
+                    {order.liveLink && (
+                      <p className="text-[10px] text-green-600 font-bold bg-green-50 p-2 rounded-md border border-green-100 flex items-center gap-2">
+                        <CheckCircle className="w-3 h-3" /> Link Submitted: {order.liveLink}
+                      </p>
+                    )}
                   </div>
                 )}
               </motion.div>

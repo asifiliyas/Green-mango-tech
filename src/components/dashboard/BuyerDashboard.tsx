@@ -103,10 +103,17 @@ export default function BuyerDashboard() {
                     <td className="px-6 py-4 text-sm text-gray-700 max-w-[200px] truncate">{order.targetUrl}</td>
                     <td className="px-6 py-4 text-sm font-bold text-green-600">${order.price}</td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBg(order.status)}`}>
-                        {getStatusIcon(order.status)}
-                        <span>{order.status}</span>
-                      </span>
+                      <div className="flex flex-col space-y-1">
+                        <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-black border ${getStatusBg(order.status)} w-fit`}>
+                          {getStatusIcon(order.status)}
+                          <span>{order.status}</span>
+                        </span>
+                        {order.liveLink && (
+                          <a href={order.liveLink} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 font-bold hover:underline flex items-center gap-1">
+                             <Compass className="w-3 h-3" /> View G-Post
+                          </a>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-700">
                       {new Date(order.createdAt).toLocaleDateString()}

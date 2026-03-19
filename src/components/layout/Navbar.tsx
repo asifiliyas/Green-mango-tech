@@ -13,13 +13,24 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
             <Link href={user ? "/dashboard" : "/"} className="flex items-center space-x-2 group">
-              <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform shadow-lg shadow-green-500/30">
-                <Store className="text-white w-6 h-6" />
+              <div className="w-9 h-9 bg-green-500 rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform shadow-lg shadow-green-500/30">
+                <Store className="text-white w-5 h-5" />
               </div>
-              <span className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-400">
+              <span className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-400">
                 MangoSpace
               </span>
             </Link>
+
+            <div className="hidden md:ml-10 md:flex md:space-x-8">
+              <Link href="/marketplace" className="inline-flex items-center px-1 pt-1 text-sm font-bold text-gray-500 hover:text-green-600 transition-colors">
+                Marketplace
+              </Link>
+              {user && (
+                <Link href="/dashboard" className="inline-flex items-center px-1 pt-1 text-sm font-bold text-gray-500 hover:text-green-600 transition-colors">
+                  Dashboard
+                </Link>
+              )}
+            </div>
 
           {/* Right Side */}
           <div className="flex items-center gap-3">
