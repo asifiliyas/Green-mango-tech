@@ -2,10 +2,14 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePathname } from 'next/navigation';
 import { LogOut, LayoutDashboard, Store, ShoppingBag } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const pathname = usePathname();
+
+  const isActive = (path: string) => pathname === path;
 
   return (
     <nav className="bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-50">
@@ -22,11 +26,21 @@ export default function Navbar() {
             </Link>
 
             <div className="hidden md:ml-10 md:flex md:space-x-8">
-              <Link href="/marketplace" className="inline-flex items-center px-1 pt-1 text-sm font-bold text-gray-500 hover:text-green-600 transition-colors">
+              <Link 
+                href="/marketplace" 
+                className={`inline-flex items-center px-1 pt-1 text-sm font-bold transition-colors ${
+                  isActive('/marketplace') ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500 hover:text-green-600'
+                }`}
+              >
                 Marketplace
               </Link>
               {user && (
-                <Link href="/dashboard" className="inline-flex items-center px-1 pt-1 text-sm font-bold text-gray-500 hover:text-green-600 transition-colors">
+                <Link 
+                  href="/dashboard" 
+                  className={`inline-flex items-center px-1 pt-1 text-sm font-bold transition-colors ${
+                    isActive('/dashboard') ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500 hover:text-green-600'
+                  }`}
+                >
                   Dashboard
                 </Link>
               )}

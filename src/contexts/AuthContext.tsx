@@ -71,7 +71,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
-    await signOut({ callbackUrl: '/login', redirect: true });
+    await signOut({ callbackUrl: '/auth', redirect: true });
+    // Force a complete hard-refresh to clear all memory contexts and sticky sessions
+    window.location.href = '/auth';
   };
 
   if (loading) {

@@ -3,11 +3,14 @@
 import { useEffect, useState } from 'react';
 import { ShieldCheck, Loader2, Link as LinkIcon, AlertCircle, ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 export default function AdminDashboard() {
   const [websites, setWebsites] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     Promise.all([
@@ -21,6 +24,7 @@ export default function AdminDashboard() {
   }, []);
 
   const handleUpdateWebsite = async (id: string, status: string) => {
+    const loadingToast = toast.loading('Updating site status...');
     try {
       const res = await fetch(`/api/websites/${id}`, {
         method: 'PATCH',
@@ -28,14 +32,20 @@ export default function AdminDashboard() {
         body: JSON.stringify({ status })
       });
       if (res.ok) {
+        toast.success(`Website ${status.toLowerCase()}`, { id: loadingToast });
         setWebsites(websites.filter(w => w.id !== id));
+        router.refresh();
+      } else {
+        toast.error('Failed to update website.', { id: loadingToast });
       }
     } catch (err) {
+      toast.error('Network error.', { id: loadingToast });
       console.error(err);
     }
   };
 
   const handleUpdateOrder = async (id: string, status: string) => {
+    const loadingToast = toast.loading('Updating order status...');
     try {
       const res = await fetch(`/api/orders/${id}`, {
         method: 'PATCH',
@@ -43,9 +53,14 @@ export default function AdminDashboard() {
         body: JSON.stringify({ status })
       });
       if (res.ok) {
+        toast.success(`Order ${status.toLowerCase()}`, { id: loadingToast });
         setOrders(orders.map(o => o.id === id ? { ...o, status } : o));
+        router.refresh();
+      } else {
+        toast.error('Failed to update order.', { id: loadingToast });
       }
     } catch (err) {
+      toast.error('Network error.', { id: loadingToast });
       console.error(err);
     }
   };

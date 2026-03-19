@@ -4,12 +4,26 @@ import { getSession } from '../../../lib/auth';
 
 export async function GET(req: Request) {
   try {
+    const session = await getSession();
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category');
     const minDa = searchParams.get('minDa');
-    const status = searchParams.get('status') || 'APPROVED';
+    const myOnly = searchParams.get('my') === 'true';
+    const status = searchParams.get('status');
 
-    const where: any = { status };
+    const where: any = {};
+
+    if (myOnly && session) {
+      // If fetching "My Listings", show all statuses for this seller
+      where.sellerId = session.userId;
+    } else if (status === 'PENDING' && session?.role === 'ADMIN') {
+      // Admin review view
+      where.status = 'PENDING';
+    } else {
+      // Default marketplace view: only approved
+      where.status = 'APPROVED';
+    }
+
     if (category) where.category = category;
     if (minDa) where.da = { gte: parseInt(minDa) };
 
@@ -20,7 +34,7 @@ export async function GET(req: Request) {
           select: { name: true, email: true }
         }
       },
-      orderBy: { da: 'desc' }
+      orderBy: { createdAt: 'desc' }
     });
 
     return NextResponse.json({ websites }, { status: 200 });

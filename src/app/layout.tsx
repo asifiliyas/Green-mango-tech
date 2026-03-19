@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { NextAuthProvider } from '@/components/auth/NextAuthProvider';
 import Navbar from '@/components/layout/Navbar';
 import Script from 'next/script';
+import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -31,6 +32,7 @@ export default function RootLayout({
               <footer className="py-8 border-t border-gray-200 text-center text-gray-400 text-sm bg-white">
                 <p>&copy; {new Date().getFullYear()} MangoSpace. Built with Next.js &amp; PostgreSQL.</p>
               </footer>
+              <Toaster position="bottom-right" reverseOrder={false} />
             </div>
           </AuthProvider>
         </NextAuthProvider>

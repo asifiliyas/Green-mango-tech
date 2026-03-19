@@ -6,6 +6,7 @@ import { Store, Loader2, Filter, Search, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
+import toast from 'react-hot-toast';
 
 export default function MarketplacePage() {
   const { user } = useAuth();
@@ -44,10 +45,11 @@ export default function MarketplacePage() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || 'Failed to initialize payment');
+        toast.error(data.error || 'Failed to initialize payment');
         setPlacingOrder(false);
         return;
       }
+      toast.success('Payment initialized. Opening secure gateway...');
 
       // 2. Open Razorpay Checkout Modal
       const options = {
@@ -75,12 +77,13 @@ export default function MarketplacePage() {
 
             const verifyData = await verifyRes.json();
             if (verifyRes.ok) {
+              toast.success('Order placed successfully!');
               setOrderSite(null);
               setTargetUrl('');
               setContent('');
               router.push('/dashboard?status=success');
             } else {
-              alert(verifyData.error || 'Payment verification failed');
+              toast.error(verifyData.error || 'Payment verification failed');
             }
           } catch (err) {
             console.error(err);
@@ -98,7 +101,7 @@ export default function MarketplacePage() {
 
       const razorpay = new (window as any).Razorpay(options);
       razorpay.on('payment.failed', function (response: any) {
-        alert("Payment Failed. Reason: " + response.error.description);
+        toast.error("Payment Failed: " + response.error.description);
       });
       razorpay.open();
     } catch (err) {
