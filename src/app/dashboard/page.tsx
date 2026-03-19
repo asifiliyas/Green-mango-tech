@@ -16,7 +16,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const finalizeRole = async () => {
       const pendingRole = localStorage.getItem('pending_role');
-      if (pendingRole && user && user.role === 'BUYER') { // Default in DB is BUYER
+      if (pendingRole && user && user.role !== pendingRole) { // Sync if role doesn't match portal choice
          setSyncing(true);
          try {
            const res = await fetch('/api/auth/update-role', {

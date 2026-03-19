@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 
     const options = {
       amount: amountInCents,
-      currency: "USD",
+      currency: "INR",
       receipt: `receipt_${Date.now()}`,
     };
 

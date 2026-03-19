@@ -22,6 +22,13 @@ export default function MarketplacePage() {
   const router = useRouter();
 
   useEffect(() => {
+    if (!orderSite) {
+      setTargetUrl('');
+      setContent('');
+    }
+  }, [orderSite]);
+
+  useEffect(() => {
     fetch('/api/websites')
       .then(res => res.json())
       .then(data => {
@@ -30,13 +37,37 @@ export default function MarketplacePage() {
       });
   }, []);
 
+  useEffect(() => {
+    // Check if script loaded via layout.tsx
+    if ((window as any).Razorpay) {
+      setIsRazorpayLoaded(true);
+    } else {
+      // Fallback check if script is still loading
+      const interval = setInterval(() => {
+        if ((window as any).Razorpay) {
+          setIsRazorpayLoaded(true);
+          clearInterval(interval);
+        }
+      }, 500);
+      return () => clearInterval(interval);
+    }
+  }, []);
+
   const handleOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!orderSite) return;
     
     setPlacingOrder(true);
+    
+    // Safety timeout: if modal doesn't open, reset state
+    const timeout = setTimeout(() => {
+      if (placingOrder) {
+        setPlacingOrder(false);
+        toast.error('Payment gateway timed out. Please refresh.');
+      }
+    }, 8000);
+
     try {
-      // 1. Create Razorpay Payment Intent (Order) from Backend
       const res = await fetch('/api/payments/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -47,21 +78,31 @@ export default function MarketplacePage() {
       if (!res.ok) {
         toast.error(data.error || 'Failed to initialize payment');
         setPlacingOrder(false);
+        clearTimeout(timeout);
         return;
       }
+      
+      const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+      if (!razorpayKey) {
+        console.error('CRITICAL: NEXT_PUBLIC_RAZORPAY_KEY_ID is missing from environment.');
+        toast.error('Payment configuration error. Please contact support.');
+        setPlacingOrder(false);
+        clearTimeout(timeout);
+        return;
+      }
+
       toast.success('Payment initialized. Opening secure gateway...');
 
-      // 2. Open Razorpay Checkout Modal
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: razorpayKey,
         amount: data.order.amount,
         currency: data.order.currency,
         name: "MangoSpace Marketplace",
         description: `Guest Post on ${orderSite.url}`,
         order_id: data.order.id,
         handler: async function (response: any) {
+          clearTimeout(timeout);
           try {
-            // 3. Verify Payment and Create Order Record
             const verifyRes = await fetch('/api/payments/verify', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -87,7 +128,9 @@ export default function MarketplacePage() {
             }
           } catch (err) {
             console.error(err);
-            alert('Something went wrong during payment verification');
+            toast.error('Something went wrong during payment verification');
+          } finally {
+            setPlacingOrder(false);
           }
         },
         prefill: {
@@ -97,18 +140,26 @@ export default function MarketplacePage() {
         theme: {
           color: "#22c55e",
         },
+        modal: {
+          ondismiss: function() {
+            setPlacingOrder(false);
+            clearTimeout(timeout);
+          }
+        }
       };
 
       const razorpay = new (window as any).Razorpay(options);
       razorpay.on('payment.failed', function (response: any) {
         toast.error("Payment Failed: " + response.error.description);
+        setPlacingOrder(false);
+        clearTimeout(timeout);
       });
       razorpay.open();
     } catch (err) {
       console.error(err);
-      alert('Network error initializing payment');
-    } finally {
+      toast.error('Network error initializing payment');
       setPlacingOrder(false);
+      clearTimeout(timeout);
     }
   };
 
@@ -118,10 +169,6 @@ export default function MarketplacePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <Script 
-        src="https://checkout.razorpay.com/v1/checkout.js" 
-        onLoad={() => setIsRazorpayLoaded(true)}
-      />
       <div className="flex justify-between items-center mb-10">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
@@ -167,7 +214,7 @@ export default function MarketplacePage() {
             </div>
             
             <div className="flex flex-col items-end border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-8 w-full md:w-auto">
-              <p className="text-3xl font-extrabold text-green-600 mb-4">${site.price}</p>
+              <p className="text-3xl font-extrabold text-green-600 mb-4">₹{site.price}</p>
               {user?.role === 'BUYER' ? (
                 <button 
                   onClick={() => setOrderSite(site)}
@@ -185,10 +232,12 @@ export default function MarketplacePage() {
         ))}
 
         {websites.length === 0 && (
-          <div className="bg-white p-12 rounded-2xl border border-gray-100 text-center">
-            <Filter className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-900">No websites found</h3>
-            <p className="text-gray-500 mt-2">Check back later for new publisher listings.</p>
+          <div className="bg-white p-16 rounded-3xl border border-gray-100 text-center shadow-sm">
+            <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Store className="w-8 h-8 text-green-500" />
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 mb-2">All Sites Taken!</h3>
+            <p className="text-gray-500 font-medium max-w-sm mx-auto">More publishers coming soon! Check back later for new high-quality guest posting opportunities.</p>
           </div>
         )}
       </div>
@@ -205,7 +254,7 @@ export default function MarketplacePage() {
                 <h3 className="text-lg font-bold text-gray-900 leading-tight">Place Order</h3>
                 <p className="text-sm text-gray-700 font-medium">{orderSite.url}</p>
               </div>
-              <p className="text-2xl font-black text-green-600">${orderSite.price}</p>
+              <p className="text-2xl font-black text-green-600">₹{orderSite.price}</p>
             </div>
             
             <form onSubmit={handleOrder} className="p-6 space-y-4">
@@ -230,23 +279,30 @@ export default function MarketplacePage() {
                 <p className="text-xs text-gray-600 mt-1 font-medium">If you don't provide content, publisher might charge extra for writing.</p>
               </div>
               
-              <div className="flex gap-3 pt-4 border-t border-gray-100">
-                <button type="button" onClick={() => setOrderSite(null)} className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors">
+              <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 flex flex-col items-center mb-6">
+                 <p className="text-[10px] text-blue-600 font-black uppercase tracking-widest mb-2">Reviewer Test Information</p>
+                 <p className="text-[11px] text-gray-800 font-bold italic text-center leading-relaxed">
+                   Please use Card: <span className="text-blue-600">4111 1111 1111</span> or UPI ID: <span className="text-blue-600">success@razorpay</span> for testing. No real money will be debited.
+                 </p>
+              </div>
+              
+              <div className="flex gap-3 pt-6 border-t border-gray-100">
+                <button type="button" onClick={() => setOrderSite(null)} className="flex-1 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold transition-all active:scale-95">
                   Cancel
                 </button>
                 <button 
                   type="submit" disabled={placingOrder || !isRazorpayLoaded}
-                  className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition-colors flex justify-center items-center disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="flex-1 py-3.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-black shadow-xl shadow-green-100 transition-all flex justify-center items-center disabled:opacity-70 disabled:cursor-not-allowed active:scale-95"
                 >
                   {placingOrder ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                      Processing...
+                      Verify Payment...
                     </>
                   ) : !isRazorpayLoaded ? (
-                    'Loading Payment...'
+                    'Initializing...'
                   ) : (
-                    'Confirm Order'
+                    'Confirm Payment'
                   )}
                 </button>
               </div>

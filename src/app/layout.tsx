@@ -22,6 +22,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-gray-50 min-h-screen font-sans text-gray-900 selection:bg-green-100 selection:text-green-900`}>
+        <Script 
+          src="https://checkout.razorpay.com/v1/checkout.js" 
+          strategy="beforeInteractive"
+        />
         <NextAuthProvider>
           <AuthProvider>
             <div className="flex flex-col min-h-screen">

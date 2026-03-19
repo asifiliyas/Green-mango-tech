@@ -14,14 +14,22 @@ export async function GET(req: Request) {
     const where: any = {};
 
     if (myOnly && session) {
-      // If fetching "My Listings", show all statuses for this seller
+      // Seller's own listing — show everything regardless of status
       where.sellerId = session.userId;
     } else if (status === 'PENDING' && session?.role === 'ADMIN') {
       // Admin review view
       where.status = 'PENDING';
     } else {
-      // Default marketplace view: only approved
+      // Public Marketplace: APPROVED + not already bought
+      // A site is "bought" ONLY if it has an order PAID / PROCESSING / COMPLETED.
+      // Orders that are PENDING (payment initiated but never completed) or
+      // REJECTED must NOT hide the site.
       where.status = 'APPROVED';
+      where.orders = {
+        none: {
+          status: { in: ['PAID', 'PROCESSING', 'COMPLETED'] }
+        }
+      };
     }
 
     if (category) where.category = category;

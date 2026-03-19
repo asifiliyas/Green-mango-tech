@@ -5,18 +5,21 @@ export default withAuth(
   function middleware(req) {
     const token = req.nextauth.token;
     const pathname = req.nextUrl.pathname;
+    const role = token?.role;
 
-    // Admin routes protection
-    if (pathname.startsWith("/api/admin") && token?.role !== "ADMIN") {
+    // 1. Admin Dashboard Protection
+    if (pathname.startsWith("/dashboard/admin") && role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+
+    // 2. Admin API Protection
+    if (pathname.startsWith("/api/admin") && role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    // Role-based route protection for dashboards (if we separate them)
-    // Currently we use a single /dashboard, but for API routes:
-    if (pathname.startsWith("/api/websites") && req.method === "POST" && token?.role !== "SELLER") {
-       // Only sellers can submit sites
-       // Wait, Admin might need to too, but usually it's Sellers.
-    }
+    // 3. Seller-only Dashboard Sections (if any)
+    // Currently, /dashboard is shared and renders based on role internally.
+    // This is fine as the components handle the role checks.
 
     return NextResponse.next();
   },
@@ -33,9 +36,8 @@ export default withAuth(
 export const config = {
   matcher: [
     "/dashboard/:path*",
-    "/marketplace/:path*",
-    "/api/websites/:path*",
     "/api/orders/:path*",
     "/api/payments/:path*",
+    "/api/admin/:path*",
   ],
 };

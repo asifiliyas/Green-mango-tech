@@ -9,7 +9,7 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
 
-  const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
 
   return (
     <nav className="bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-50">

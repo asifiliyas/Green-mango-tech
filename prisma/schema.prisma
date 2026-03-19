@@ -23,10 +23,14 @@ enum WebsiteStatus {
   PENDING
   APPROVED
   REJECTED
+  HIDDEN
+  SOLD
 }
 
 enum OrderStatus {
   PENDING
+  PAID
+  PROCESSING
   APPROVED
   REJECTED
   COMPLETED
@@ -74,6 +78,7 @@ model User {
   sessions      Session[]
   websites      Website[] @relation("SellerWebsites")
   orders        Order[]   @relation("BuyerOrders")
+  sellerOrders  Order[]   @relation("SellerOrders")
 }
 
 model VerificationToken {
@@ -106,6 +111,8 @@ model Order {
   id          String      @id @default(cuid())
   buyerId     String
   buyer       User        @relation("BuyerOrders", fields: [buyerId], references: [id])
+  sellerId    String
+  seller      User        @relation("SellerOrders", fields: [sellerId], references: [id])
   websiteId   String
   website     Website     @relation("WebsiteOrders", fields: [websiteId], references: [id])
   targetUrl   String      // URL the buyer wants to promote

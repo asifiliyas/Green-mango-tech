@@ -58,6 +58,7 @@ export default function AuthPage() {
           password: data.password
         });
         if (result?.error) throw new Error('Invalid email or password');
+        if (selectedRole) localStorage.setItem('pending_role', selectedRole);
         window.location.href = '/dashboard';
       } else {
         const res = await fetch('/api/auth/register', {

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useSession, signOut, signIn } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { Loader2, Store } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -47,16 +47,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [session]);
 
-  // Client-side route protection
+  // Client-side route protection — only protect /dashboard
   useEffect(() => {
     if (!loading) {
-      const protectedPaths = ['/dashboard', '/marketplace'];
       const authPaths = ['/login', '/register', '/auth'];
-      
-      const isProtected = protectedPaths.some(p => pathname.startsWith(p));
       const isAuthPage = authPaths.some(p => pathname.startsWith(p));
 
-      if (!session && isProtected) {
+      if (!session && pathname.startsWith('/dashboard')) {
         router.push('/auth');
       } else if (session && isAuthPage) {
         router.push('/dashboard');
@@ -65,21 +62,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [session, loading, pathname, router]);
 
   const login = (newUser: User) => {
-    // With NextAuth, login happens via signIn()
     setUser(newUser);
     router.push('/dashboard');
   };
 
   const logout = async () => {
-    await signOut({ callbackUrl: '/auth', redirect: true });
-    // Force a complete hard-refresh to clear all memory contexts and sticky sessions
+    // First clear React state immediately
+    setUser(null);
+    // Then destroy the NextAuth session. redirect:false so WE control navigation.
+    await signOut({ redirect: false });
+    // Hard navigate to /auth — this fully resets all in-memory React state
     window.location.href = '/auth';
   };
 
   if (loading) {
     return (
       <div className="fixed inset-0 bg-white flex flex-col items-center justify-center z-[9999]">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center"

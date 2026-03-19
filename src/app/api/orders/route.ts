@@ -21,9 +21,11 @@ export async function GET() {
         orderBy: { createdAt: 'desc' }
       });
     } else if (role === 'SELLER') {
+      console.log('[Orders API] Fetching orders for SELLER userId:', userId);
       orders = await prisma.order.findMany({
         where: {
-          website: { sellerId: userId }
+          sellerId: userId, // Direct query on Order model as requested
+          status: { in: ['PAID', 'PROCESSING', 'APPROVED', 'COMPLETED'] }
         },
         include: {
           buyer: { select: { name: true, email: true } },
@@ -31,6 +33,7 @@ export async function GET() {
         },
         orderBy: { createdAt: 'desc' }
       });
+      console.log('[Orders API] Found', orders.length, 'orders for this seller');
     } else {
       orders = await prisma.order.findMany({
         where: { buyerId: userId },

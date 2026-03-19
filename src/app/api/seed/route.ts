@@ -1,77 +1,118 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { OrderStatus, WebsiteStatus, Role } from '@prisma/client';
 
 export async function GET() {
   try {
     const password = await bcrypt.hash('password123', 10);
 
-    // 1. Create Admin
-    await prisma.user.upsert({
+    // 0. CLEAN THE DATABASE COMPLETELY FOR A FRESH START
+    console.log('[Seed] Wiping existing data for professional reset...');
+    await prisma.order.deleteMany();
+    await prisma.website.deleteMany();
+
+    // 1. Create/Update Admin
+    const admin = await prisma.user.upsert({
       where: { email: 'admin@test.com' },
-      update: {},
+      update: { role: Role.ADMIN },
       create: {
         email: 'admin@test.com',
         name: 'System Admin',
         password,
-        role: 'ADMIN',
+        role: Role.ADMIN,
       },
     });
 
-    // 2. Create Seller
-    await prisma.user.upsert({
+    // 2. Create/Update Default Seller
+    const seller = await prisma.user.upsert({
       where: { email: 'seller@test.com' },
-      update: {},
+      update: { role: Role.SELLER },
       create: {
         email: 'seller@test.com',
         name: 'Pro Publisher',
         password,
-        role: 'SELLER',
+        role: Role.SELLER,
       },
     });
 
-    // 3. Create Buyer
-    await prisma.user.upsert({
+    // 3. Create/Update Default Buyer
+    const buyerArr = await prisma.user.findMany({ where: { role: Role.BUYER } });
+    
+    const buyer = await prisma.user.upsert({
       where: { email: 'buyer@test.com' },
-      update: {},
+      update: { role: Role.BUYER },
       create: {
         email: 'buyer@test.com',
         name: 'SEO Agency',
         password,
-        role: 'BUYER',
+        role: Role.BUYER,
       },
     });
 
-    // 4. Create a Sample Approved Website for the Buyer to see
-    const testSeller = await prisma.user.findUnique({ where: { email: 'seller@test.com' } });
-    if (testSeller) {
-      await prisma.website.upsert({
-        where: { url: 'https://techcrunch.com' },
-        update: {},
-        create: {
-          url: 'https://techcrunch.com',
-          category: 'Technology',
-          da: 92,
-          dr: 88,
-          traffic: 500000,
-          price: 199,
-          status: 'APPROVED',
-          sellerId: testSeller.id
+    // 4. Force-set 'SELLER' role for any personal account (Gmail) to ensure testability
+    const personalAccount = await prisma.user.findFirst({
+      where: { email: { contains: '@gmail.com' } }
+    });
+    
+    if (personalAccount) {
+      console.log(`[Seed] Promoting ${personalAccount.email} to SELLER role for testing...`);
+      await prisma.user.update({
+        where: { id: personalAccount.id },
+        data: { role: Role.SELLER }
+      });
+    }
+    
+    const targetSellerId = personalAccount ? personalAccount.id : seller.id;
+    const targetSellerName = personalAccount ? personalAccount.name : seller.name;
+
+    // 5. Create Sample approved websites
+    const sampleSites = [
+      { url: 'https://techcrunch.com', category: 'Technology', da: 92, dr: 88, traffic: 500000, price: 199 },
+      { url: 'https://wowscience.com', category: 'Science', da: 45, dr: 40, traffic: 25000, price: 49 },
+      { url: 'https://startupblog.io', category: 'Business', da: 55, dr: 50, traffic: 80000, price: 79 },
+      { url: 'https://green-mango.vercel.app/', category: 'Health', da: 30, dr: 50, traffic: 5000, price: 50 },
+    ];
+
+    for (const site of sampleSites) {
+      await prisma.website.create({
+        data: {
+          ...site,
+          status: WebsiteStatus.APPROVED,
+          sellerId: targetSellerId
+        }
+      });
+    }
+
+    // 6. Create a test PAID order for TechCrunch - ensuring it belongs to the target seller
+    const tc = await prisma.website.findFirst({ where: { url: 'https://techcrunch.com' } });
+    if (tc) {
+      await prisma.order.create({
+        data: {
+          id: 'test-order-tc-' + Date.now(),
+          websiteId: tc.id,
+          buyerId: buyer.id,
+          sellerId: targetSellerId,
+          targetUrl: 'https://my-startup.com',
+          price: tc.price,
+          status: OrderStatus.PAID
         }
       });
     }
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Database seeded successfully with test accounts and sample data.',
+      message: `Database hard-reset. Sites & SELLER role assigned to ${targetSellerName || targetSellerId}.`,
+      sellerAssigned: targetSellerName,
       accounts: [
-        { email: 'admin@test.com', password: 'password123', role: 'ADMIN' },
-        { email: 'seller@test.com', password: 'password123', role: 'SELLER' },
-        { email: 'buyer@test.com', password: 'password123', role: 'BUYER' }
+        { email: admin.email, role: 'ADMIN' },
+        { email: seller.email, role: 'SELLER' },
+        { email: buyer.email, role: 'BUYER' },
+        { email: personalAccount?.email || 'N/A', role: 'PERSONAL (NOW SELLER)' }
       ]
     }, { status: 200 });
   } catch (error) {
     console.error('Seed error:', error);
-    return NextResponse.json({ success: false, error: 'Database seeding failed.' }, { status: 500 });
+    return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
   }
 }
