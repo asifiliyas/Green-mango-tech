@@ -1,14 +1,15 @@
-# 🥭 MangoSpace: Guest Posting Ecosystem
+# MangoSpace: Guest Posting Ecosystem
 
-A premium, role-based marketplace that bridges the gap between SEO Agencies (Buyers), Content Publishers (Sellers), and Administrative Oversight. Built with architectural integrity, cryptographic security, and a strict fulfillment loop.
+A premium, role-based marketplace that bridges the gap between SEO Agencies (Buyers), Content Publishers (Sellers), and Administrative Oversight. Built with architectural integrity, cryptographic security, and a strict moderated fulfillment loop.
 
 ---
 
 ### 🚀 The 60-Second Flow (How to use)
 
-*   **Step 1: Login as Buyer** $\rightarrow$ Navigate to the Marketplace and purchase a premium website listing using **Razorpay Test Mode**. (Status: `PAID`).
-*   **Step 2: Login as Seller** $\rightarrow$ Spot the new order in your 'Incoming Orders' list. Click **'Accept'** to move it to `PROCESSING`, then publish the guest post and **'Submit'** the live link.
-*   **Step 3: Login as Admin** $\rightarrow$ Review the submitted link in the Admin Dashboard. Click **'Verify & Complete'** to finalize the transaction and release funds to the Seller’s total earnings.
+*   **Step 0: Listing & Approval (Seller/Admin)** $\rightarrow$ Login as Seller and **'Submit'** a website listing. The site remains **PENDING** and invisible to buyers until the Admin reviews and **'Approves'** it for the public Marketplace.
+*   **Step 1: Purchase (Buyer)** $\rightarrow$ Once approved, the Buyer discovers the site in the Marketplace and purchases it using **Razorpay Test Mode**. (Status: `PAID`).
+*   **Step 2: Fulfillment (Seller)** $\rightarrow$ The Seller sees the new order immediately. Click **'Accept'** (moves to `PROCESSING`), publishes the post, and **'Submits'** the live link for proof of work.
+*   **Step 3: Verification (Admin)** $\rightarrow$ The Admin reviews the submitted proof. Clicking **'Verify & Complete'** finalizes the transaction and releases the payment to the Seller’s total earnings.
 
 ---
 
