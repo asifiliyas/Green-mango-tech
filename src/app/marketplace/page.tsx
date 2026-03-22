@@ -53,13 +53,43 @@ export default function MarketplacePage() {
     }
   }, []);
 
+  const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+  const isDemoMode = !razorpayKey;
+
   const handleOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!orderSite) return;
-    
+
     setPlacingOrder(true);
-    
-    // Safety timeout: if modal doesn't open, reset state
+
+    // Demo mode: no Razorpay key configured — place order directly
+    if (isDemoMode) {
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ websiteId: orderSite.id, targetUrl, content })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          toast.success('Demo order placed! Status: PAID');
+          setOrderSite(null);
+          setTargetUrl('');
+          setContent('');
+          router.push('/dashboard');
+        } else {
+          toast.error(data.error || 'Failed to place order');
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error('Network error placing order');
+      } finally {
+        setPlacingOrder(false);
+      }
+      return;
+    }
+
+    // Live mode: Razorpay payment flow
     const timeout = setTimeout(() => {
       if (placingOrder) {
         setPlacingOrder(false);
@@ -77,15 +107,6 @@ export default function MarketplacePage() {
 
       if (!res.ok) {
         toast.error(data.error || 'Failed to initialize payment');
-        setPlacingOrder(false);
-        clearTimeout(timeout);
-        return;
-      }
-      
-      const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-      if (!razorpayKey) {
-        console.error('CRITICAL: NEXT_PUBLIC_RAZORPAY_KEY_ID is missing from environment.');
-        toast.error('Payment configuration error. Please contact support.');
         setPlacingOrder(false);
         clearTimeout(timeout);
         return;
@@ -279,28 +300,39 @@ export default function MarketplacePage() {
                 <p className="text-xs text-gray-600 mt-1 font-medium">If you don't provide content, publisher might charge extra for writing.</p>
               </div>
               
-              <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 flex flex-col items-center mb-6">
-                 <p className="text-[10px] text-blue-600 font-black uppercase tracking-widest mb-2">Reviewer Test Information</p>
-                 <p className="text-[11px] text-gray-800 font-bold italic text-center leading-relaxed">
-                   Please use Card: <span className="text-blue-600">4111 1111 1111</span> or UPI ID: <span className="text-blue-600">success@razorpay</span> for testing. No real money will be debited.
-                 </p>
-              </div>
+              {isDemoMode ? (
+                <div className="bg-green-50/70 p-4 rounded-2xl border border-green-100 flex flex-col items-center mb-6">
+                  <p className="text-[10px] text-green-700 font-black uppercase tracking-widest mb-2">Demo Mode</p>
+                  <p className="text-[11px] text-gray-700 font-medium text-center leading-relaxed">
+                    No payment gateway configured. Clicking <span className="font-black text-green-700">Place Demo Order</span> will create a <span className="font-black">PAID</span> order instantly so the full workflow can be reviewed.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 flex flex-col items-center mb-6">
+                  <p className="text-[10px] text-blue-600 font-black uppercase tracking-widest mb-2">Reviewer Test Information</p>
+                  <p className="text-[11px] text-gray-800 font-bold italic text-center leading-relaxed">
+                    Please use Card: <span className="text-blue-600">4111 1111 1111</span> or UPI ID: <span className="text-blue-600">success@razorpay</span> for testing. No real money will be debited.
+                  </p>
+                </div>
+              )}
               
               <div className="flex gap-3 pt-6 border-t border-gray-100">
                 <button type="button" onClick={() => setOrderSite(null)} className="flex-1 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold transition-all active:scale-95">
                   Cancel
                 </button>
-                <button 
-                  type="submit" disabled={placingOrder || !isRazorpayLoaded}
+                <button
+                  type="submit" disabled={placingOrder || (!isDemoMode && !isRazorpayLoaded)}
                   className="flex-1 py-3.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-black shadow-xl shadow-green-100 transition-all flex justify-center items-center disabled:opacity-70 disabled:cursor-not-allowed active:scale-95"
                 >
                   {placingOrder ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                      Verify Payment...
+                      {isDemoMode ? 'Placing Order...' : 'Verify Payment...'}
                     </>
-                  ) : !isRazorpayLoaded ? (
+                  ) : !isDemoMode && !isRazorpayLoaded ? (
                     'Initializing...'
+                  ) : isDemoMode ? (
+                    'Place Demo Order'
                   ) : (
                     'Confirm Payment'
                   )}

@@ -67,12 +67,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
-    // First clear React state immediately
     setUser(null);
-    // Then destroy the NextAuth session. redirect:false so WE control navigation.
-    await signOut({ redirect: false });
-    // Hard navigate to /auth — this fully resets all in-memory React state
-    window.location.href = '/auth';
+    await signOut({ callbackUrl: '/auth' });
   };
 
   if (loading) {

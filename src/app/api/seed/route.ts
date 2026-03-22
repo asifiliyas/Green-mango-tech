@@ -37,8 +37,6 @@ export async function GET() {
     });
 
     // 3. Create/Update Default Buyer
-    const buyerArr = await prisma.user.findMany({ where: { role: Role.BUYER } });
-    
     const buyer = await prisma.user.upsert({
       where: { email: 'buyer@test.com' },
       update: { role: Role.BUYER },
@@ -50,21 +48,8 @@ export async function GET() {
       },
     });
 
-    // 4. Force-set 'SELLER' role for any personal account (Gmail) to ensure testability
-    const personalAccount = await prisma.user.findFirst({
-      where: { email: { contains: '@gmail.com' } }
-    });
-    
-    if (personalAccount) {
-      console.log(`[Seed] Promoting ${personalAccount.email} to SELLER role for testing...`);
-      await prisma.user.update({
-        where: { id: personalAccount.id },
-        data: { role: Role.SELLER }
-      });
-    }
-    
-    const targetSellerId = personalAccount ? personalAccount.id : seller.id;
-    const targetSellerName = personalAccount ? personalAccount.name : seller.name;
+    const targetSellerId = seller.id;
+    const targetSellerName = seller.name;
 
     // 5. Create Sample approved websites
     const sampleSites = [
@@ -100,15 +85,13 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: `Database hard-reset. Sites & SELLER role assigned to ${targetSellerName || targetSellerId}.`,
-      sellerAssigned: targetSellerName,
+    return NextResponse.json({
+      success: true,
+      message: 'Database hard-reset. All test accounts and sample data restored.',
       accounts: [
         { email: admin.email, role: 'ADMIN' },
         { email: seller.email, role: 'SELLER' },
         { email: buyer.email, role: 'BUYER' },
-        { email: personalAccount?.email || 'N/A', role: 'PERSONAL (NOW SELLER)' }
       ]
     }, { status: 200 });
   } catch (error) {

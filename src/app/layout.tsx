@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { DM_Sans } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NextAuthProvider } from '@/components/auth/NextAuthProvider';
@@ -7,7 +7,7 @@ import Navbar from '@/components/layout/Navbar';
 import Script from 'next/script';
 import { Toaster } from 'react-hot-toast';
 
-const inter = Inter({ subsets: ['latin'] });
+const dmSans = DM_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800', '900'] });
 
 export const metadata: Metadata = {
   title: 'MangoSpace - The Premium Guest Posting Marketplace',
@@ -21,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-gray-50 min-h-screen font-sans text-gray-900 selection:bg-green-100 selection:text-green-900`}>
+      <body className={`${dmSans.className} bg-gray-50 min-h-screen font-sans text-gray-900 selection:bg-green-100 selection:text-green-900`}>
         <Script 
           src="https://checkout.razorpay.com/v1/checkout.js" 
           strategy="beforeInteractive"

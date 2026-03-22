@@ -72,15 +72,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Website not found or not approved' }, { status: 404 });
     }
 
-    const order = await prisma.order.create({
-      data: {
-        websiteId,
-        buyerId: session.userId,
-        targetUrl,
-        content,
-        price: website.price,
-        status: 'PENDING'
-      }
+    // Use a transaction to create the order and mark the site as SOLD atomically,
+    // matching the same behaviour as the Razorpay payment verification flow.
+    const order = await prisma.$transaction(async (tx) => {
+      const newOrder = await tx.order.create({
+        data: {
+          websiteId,
+          buyerId: session.userId,
+          sellerId: website.sellerId, // required field — sourced from the website record
+          targetUrl,
+          content,
+          price: website.price,
+          status: 'PAID', // created as PAID — simulates a completed payment for demo use
+        },
+      });
+
+      await tx.website.update({
+        where: { id: websiteId },
+        data: { status: 'SOLD' },
+      });
+
+      return newOrder;
     });
 
     return NextResponse.json({ order }, { status: 201 });

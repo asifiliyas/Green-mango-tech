@@ -5,7 +5,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useSearchParams } from 'next/navigation';
-import { Store, Loader2, KeyRound, Mail, User as UserIcon, ShieldCheck, ShoppingCart, ArrowRight, ArrowLeft, Truck } from 'lucide-react';
+import {
+  Store, Loader2, KeyRound, Mail, User as UserIcon,
+  ShieldCheck, ShoppingCart, ArrowRight, ArrowLeft, Truck, Zap,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { signIn } from 'next-auth/react';
 
@@ -16,14 +19,18 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
-
 type SelectedRole = 'ADMIN' | 'BUYER' | 'SELLER' | null;
 
 export default function AuthPage() {
   const [selectedRole, setSelectedRole] = useState<SelectedRole>(null);
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Individual loading states for each test-login button
   const [adminLoading, setAdminLoading] = useState(false);
+  const [buyerLoading, setBuyerLoading] = useState(false);
+  const [sellerLoading, setSellerLoading] = useState(false);
+
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -39,14 +46,47 @@ export default function AuthPage() {
     resolver: zodResolver(formSchema),
   });
 
+  // ─── INSTANT TEST LOGINS ───────────────────────────────────────────────────
+
   const handleAdminLogin = async () => {
     setAdminLoading(true);
     await signIn('credentials', {
       email: 'admin@test.com',
       password: 'password123',
-      callbackUrl: '/dashboard'
+      callbackUrl: '/dashboard',
     });
   };
+
+  const handleBuyerTestLogin = async () => {
+    setBuyerLoading(true);
+    await signIn('credentials', {
+      email: 'buyer@test.com',
+      password: 'password123',
+      callbackUrl: '/dashboard',
+    });
+  };
+
+  const handleSellerTestLogin = async () => {
+    setSellerLoading(true);
+    await signIn('credentials', {
+      email: 'seller@test.com',
+      password: 'password123',
+      callbackUrl: '/dashboard',
+    });
+  };
+
+  // Used inside the form view — logs in instantly for whichever role is selected
+  const handleInstantTestLogin = async () => {
+    if (selectedRole === 'BUYER') {
+      setBuyerLoading(true);
+      await signIn('credentials', { email: 'buyer@test.com', password: 'password123', callbackUrl: '/dashboard' });
+    } else if (selectedRole === 'SELLER') {
+      setSellerLoading(true);
+      await signIn('credentials', { email: 'seller@test.com', password: 'password123', callbackUrl: '/dashboard' });
+    }
+  };
+
+  // ─── REGULAR FORM SUBMIT ───────────────────────────────────────────────────
 
   const onSubmit = async (data: FormValues) => {
     setError(null);
@@ -55,16 +95,15 @@ export default function AuthPage() {
         const result = await signIn('credentials', {
           redirect: false,
           email: data.email,
-          password: data.password
+          password: data.password,
         });
         if (result?.error) throw new Error('Invalid email or password');
-        if (selectedRole) localStorage.setItem('pending_role', selectedRole);
         window.location.href = '/dashboard';
       } else {
         const res = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: data.name, email: data.email, password: data.password, role: selectedRole })
+          body: JSON.stringify({ name: data.name, email: data.email, password: data.password, role: selectedRole }),
         });
         const result = await res.json();
         if (!res.ok) throw new Error(result.error || 'Signup failed');
@@ -76,17 +115,14 @@ export default function AuthPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (selectedRole) {
-      localStorage.setItem('pending_role', selectedRole);
-    }
     await signIn('google', { callbackUrl: '/dashboard' });
   };
 
-  // ─── STEP 1: ROLE SELECTION ───
+  // ─── STEP 1: ROLE SELECTION ────────────────────────────────────────────────
   if (!selectedRole) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col items-center justify-center p-4">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
           <div className="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-xl shadow-green-200">
             <Store className="text-white w-8 h-8" />
           </div>
@@ -94,88 +130,128 @@ export default function AuthPage() {
           <p className="text-gray-500 mt-2 font-medium">Choose how you want to continue</p>
         </motion.div>
 
-        <div className="max-w-3xl w-full grid grid-cols-1 md:grid-cols-3 gap-5">
-          {/* Admin Card */}
-          <motion.button
-            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-            onClick={handleAdminLogin}
-            disabled={adminLoading}
-            className="group bg-white rounded-3xl border-2 border-gray-100 p-8 text-center hover:border-gray-900 hover:shadow-xl transition-all flex flex-col items-center gap-4 disabled:opacity-70"
-          >
-            <div className="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
-              <ShieldCheck className="w-8 h-8 text-white" />
+        <div className="max-w-3xl w-full space-y-5">
+
+          {/* ── TEST ACCOUNTS INFO CARD ── */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+            <div className="bg-white border border-gray-100 rounded-2xl px-6 py-5 shadow-sm">
+              <div className="flex items-start gap-3">
+                <Zap className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-xs font-black text-gray-900 uppercase tracking-widest mb-1">
+                    Reviewing this platform?
+                  </p>
+                  <p className="text-xs text-gray-500 leading-relaxed mb-4">
+                    Use the test accounts below to explore each portal. Once you select a portal (Buyer or Seller), a <span className="font-semibold text-gray-700">Quick Login</span> button will appear on the sign-in page — one click and you're in.
+                  </p>
+
+                  <div className="grid grid-cols-3 gap-2 mb-4">
+                    <div className="bg-green-50 rounded-xl px-3 py-2.5 text-center">
+                      <p className="text-[10px] font-black text-green-700 uppercase tracking-wider">Buyer</p>
+                      <p className="text-[11px] text-gray-600 mt-1 tracking-wide">buyer@test.com</p>
+                    </div>
+                    <div className="bg-blue-50 rounded-xl px-3 py-2.5 text-center">
+                      <p className="text-[10px] font-black text-blue-700 uppercase tracking-wider">Seller</p>
+                      <p className="text-[11px] text-gray-600 mt-1 tracking-wide">seller@test.com</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl px-3 py-2.5 text-center">
+                      <p className="text-[10px] font-black text-gray-700 uppercase tracking-wider">Admin</p>
+                      <p className="text-[11px] text-gray-600 mt-1 tracking-wide">admin@test.com</p>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 leading-relaxed">
+                    <span className="font-black">Google sign-in</span> creates one permanent account tied to one role only. You cannot use the same Google account for multiple portals. Use the test credentials above to switch between roles.
+                  </p>
+                </div>
+              </div>
             </div>
-            <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">Admin</h3>
-            <p className="text-xs text-gray-400 font-medium leading-relaxed">
-              Pre-configured account for reviewing the platform
-            </p>
-            {adminLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
-            ) : (
-              <span className="text-[10px] font-black text-gray-900 bg-gray-100 px-4 py-1.5 rounded-full uppercase tracking-widest group-hover:bg-gray-900 group-hover:text-white transition-colors">
-                Instant Access
+          </motion.div>
+
+          {/* ── ROLE CARDS (normal flow) ── */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Admin Card */}
+            <motion.button
+              initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+              onClick={handleAdminLogin}
+              disabled={adminLoading}
+              className="group bg-white rounded-3xl border-2 border-gray-100 p-8 text-center hover:border-gray-900 hover:shadow-xl transition-all flex flex-col items-center gap-4 disabled:opacity-70"
+            >
+              <div className="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                <ShieldCheck className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">Admin</h3>
+              <p className="text-xs text-gray-400 font-medium leading-relaxed">
+                Pre-configured account for reviewing the platform
+              </p>
+              {adminLoading
+                ? <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
+                : <span className="text-[10px] font-black text-gray-900 bg-gray-100 px-4 py-1.5 rounded-full uppercase tracking-widest group-hover:bg-gray-900 group-hover:text-white transition-colors">Instant Access</span>}
+            </motion.button>
+
+            {/* Buyer Card */}
+            <motion.button
+              initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+              onClick={() => setSelectedRole('BUYER')}
+              className="group bg-white rounded-3xl border-2 border-gray-100 p-8 text-center hover:border-green-500 hover:shadow-xl transition-all flex flex-col items-center gap-4"
+            >
+              <div className="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-green-200">
+                <ShoppingCart className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">Buyer</h3>
+              <p className="text-xs text-gray-400 font-medium leading-relaxed">
+                Browse publishers &amp; place guest post orders
+              </p>
+              <span className="text-[10px] font-black text-green-600 bg-green-50 px-4 py-1.5 rounded-full uppercase tracking-widest group-hover:bg-green-500 group-hover:text-white transition-colors">
+                Sign In / Register
               </span>
-            )}
-          </motion.button>
+            </motion.button>
 
-          {/* Buyer Card */}
-          <motion.button
-            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-            onClick={() => setSelectedRole('BUYER')}
-            className="group bg-white rounded-3xl border-2 border-gray-100 p-8 text-center hover:border-green-500 hover:shadow-xl transition-all flex flex-col items-center gap-4"
-          >
-            <div className="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-green-200">
-              <ShoppingCart className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">Buyer</h3>
-            <p className="text-xs text-gray-400 font-medium leading-relaxed">
-              Browse publishers &amp; place guest post orders
-            </p>
-            <span className="text-[10px] font-black text-green-600 bg-green-50 px-4 py-1.5 rounded-full uppercase tracking-widest group-hover:bg-green-500 group-hover:text-white transition-colors">
-              Sign In / Register
-            </span>
-          </motion.button>
+            {/* Seller Card */}
+            <motion.button
+              initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+              onClick={() => setSelectedRole('SELLER')}
+              className="group bg-white rounded-3xl border-2 border-gray-100 p-8 text-center hover:border-blue-500 hover:shadow-xl transition-all flex flex-col items-center gap-4"
+            >
+              <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-blue-200">
+                <Truck className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">Seller</h3>
+              <p className="text-xs text-gray-400 font-medium leading-relaxed">
+                List your websites &amp; earn from guest posts
+              </p>
+              <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-4 py-1.5 rounded-full uppercase tracking-widest group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                Sign In / Register
+              </span>
+            </motion.button>
+          </div>
 
-          {/* Seller Card */}
-          <motion.button
-            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-            onClick={() => setSelectedRole('SELLER')}
-            className="group bg-white rounded-3xl border-2 border-gray-100 p-8 text-center hover:border-blue-500 hover:shadow-xl transition-all flex flex-col items-center gap-4"
-          >
-            <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-blue-200">
-              <Truck className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">Seller</h3>
-            <p className="text-xs text-gray-400 font-medium leading-relaxed">
-              List your websites &amp; earn from guest posts
-            </p>
-            <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-4 py-1.5 rounded-full uppercase tracking-widest group-hover:bg-blue-500 group-hover:text-white transition-colors">
-              Sign In / Register
-            </span>
-          </motion.button>
         </div>
       </div>
     );
   }
 
-  // ─── STEP 2: AUTH FORM (for Buyer / Seller) ───
-  const accentColor = selectedRole === 'BUYER' ? 'green' : 'blue';  const testEmail = isLogin 
-    ? (selectedRole === 'BUYER' ? 'buyer@test.com' : 'seller@test.com') 
+  // ─── STEP 2: AUTH FORM (Buyer / Seller) ────────────────────────────────────
+  const accentColor = selectedRole === 'BUYER' ? 'green' : 'blue';
+  const testEmail = isLogin
+    ? (selectedRole === 'BUYER' ? 'buyer@test.com' : 'seller@test.com')
     : 'NAME@EXAMPLE.COM';
   const testPassword = isLogin ? 'password123' : '••••••••';
-
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md w-full">
-        
+
         {/* Back Button */}
-        <button onClick={() => { setSelectedRole(null); setError(null); }} className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-700 font-bold mb-6 transition-colors group">
+        <button
+          onClick={() => { setSelectedRole(null); setError(null); }}
+          className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-700 font-bold mb-6 transition-colors group"
+        >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Change role
         </button>
 
         <div className="bg-white rounded-[2rem] shadow-2xl shadow-gray-200 border border-gray-100 overflow-hidden">
-          
+
           {/* Role Badge Header */}
           <div className={`px-8 py-5 flex items-center gap-3 ${accentColor === 'green' ? 'bg-green-50 border-b border-green-100' : 'bg-blue-50 border-b border-blue-100'}`}>
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${accentColor === 'green' ? 'bg-green-500' : 'bg-blue-500'}`}>
@@ -189,19 +265,52 @@ export default function AuthPage() {
 
           {/* Tab Toggle */}
           <div className="flex border-b border-gray-100">
-            <button onClick={() => { setIsLogin(true); setError(null); }} className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all ${isLogin ? `text-${accentColor}-600 border-b-2 border-${accentColor}-500` : 'text-gray-300 hover:text-gray-500'}`}>
+            <button
+              onClick={() => { setIsLogin(true); setError(null); }}
+              className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all ${isLogin ? `text-${accentColor}-600 border-b-2 border-${accentColor}-500` : 'text-gray-300 hover:text-gray-500'}`}
+            >
               Sign In
             </button>
-            <button onClick={() => { setIsLogin(false); setError(null); }} className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all ${!isLogin ? `text-${accentColor}-600 border-b-2 border-${accentColor}-500` : 'text-gray-300 hover:text-gray-500'}`}>
+            <button
+              onClick={() => { setIsLogin(false); setError(null); }}
+              className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all ${!isLogin ? `text-${accentColor}-600 border-b-2 border-${accentColor}-500` : 'text-gray-300 hover:text-gray-500'}`}
+            >
               Register
             </button>
           </div>
+
+          {/* ── REVIEWER QUICK LOGIN BANNER (Sign In tab only) ── */}
+          {isLogin && (
+            <div className="px-8 pt-6">
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Test Account</p>
+                  <p className="text-[11px] text-gray-700 font-mono font-bold mt-0.5">
+                    {testEmail} / password123
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleInstantTestLogin}
+                  disabled={buyerLoading || sellerLoading}
+                  className={`flex-shrink-0 flex items-center gap-1.5 text-white text-[10px] font-black uppercase tracking-widest px-3.5 py-2 rounded-xl transition-all disabled:opacity-60 ${accentColor === 'green' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-amber-500 hover:bg-amber-600'}`}
+                >
+                  {(buyerLoading || sellerLoading)
+                    ? <Loader2 className="w-3 h-3 animate-spin" />
+                    : <Zap className="w-3 h-3" />}
+                  Quick Login
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Form */}
           <div className="p-8">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               {error && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-2xl text-xs font-bold text-center">{error}</motion.div>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-2xl text-xs font-bold text-center">
+                  {error}
+                </motion.div>
               )}
 
               <AnimatePresence mode="wait">
@@ -247,13 +356,16 @@ export default function AuthPage() {
 
             {/* Divider */}
             <div className="flex items-center gap-4 my-6">
-              <div className="h-px flex-1 bg-gray-100"></div>
+              <div className="h-px flex-1 bg-gray-100" />
               <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">or</span>
-              <div className="h-px flex-1 bg-gray-100"></div>
+              <div className="h-px flex-1 bg-gray-100" />
             </div>
 
-            {/* Google */}
-            <button onClick={handleGoogleSignIn} className="w-full py-3.5 bg-white border border-gray-200 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-50 transition-all shadow-sm hover:shadow-md cursor-pointer active:scale-[0.98]">
+            {/* Google — for real user sign-up (one account = one role) */}
+            <button
+              onClick={handleGoogleSignIn}
+              className="w-full py-3.5 bg-white border border-gray-200 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-50 transition-all shadow-sm hover:shadow-md cursor-pointer active:scale-[0.98]"
+            >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -262,6 +374,10 @@ export default function AuthPage() {
               </svg>
               <span className="text-sm font-bold text-gray-600">Continue with Google</span>
             </button>
+
+            <p className="text-center text-[10px] text-gray-400 font-medium mt-3">
+              Google sign-in creates a permanent account for this role only.
+            </p>
           </div>
         </div>
       </motion.div>
